@@ -14,9 +14,14 @@ Streaming PDF ingestion into ChromaDB with Gemini embeddings and an OpenRouter/G
 
 ## Web visualizer
 - Build/serve from `web-visualizer/`:
+	- Start API backend from repo root:
+		- `pip install fastapi uvicorn python-multipart`
+		- `uvicorn src.api.web_api:app --reload --port 8000`
 	- `npm install`
 	- `npm run dev`
 - Graph data is read from `web-visualizer/public/data/chroma-graph.json` (generated via `python scripts/export_chroma_graph.py`).
+- Uploading a PDF in the UI now saves it to `data/`, ingests it into `chroma_db/`, and refreshes graph data automatically.
+- The UI also includes a question input and answer panel backed by the RAG pipeline API.
 
 ## Tests
 - Python: `python -m unittest discover -s tests`

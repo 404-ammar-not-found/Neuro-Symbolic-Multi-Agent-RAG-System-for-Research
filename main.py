@@ -12,7 +12,7 @@ from src.pipeline import (
 
 
 def main() -> None:
-    settings = PipelineSettings()
+    settings = PipelineSettings(debug_retrieval=True)
     run_pipeline(settings)
 
 

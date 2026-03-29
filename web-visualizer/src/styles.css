@@ -49,7 +49,9 @@ body {
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 320px;
+  width: 390px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
   padding: 18px;
   border-radius: 18px;
   background: var(--panel);
@@ -77,6 +79,13 @@ body {
   gap: 6px;
 }
 
+.section {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.14);
+}
+
 label {
   font-size: 13px;
   color: var(--muted);
@@ -88,6 +97,7 @@ label {
 }
 
 input,
+textarea,
 select,
 button {
   border-radius: 10px;
@@ -99,10 +109,16 @@ button {
 }
 
 input:focus,
+textarea:focus,
 select:focus,
 button:focus {
   outline: 1px solid var(--accent);
   border-color: var(--accent);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 76px;
 }
 
 button {
@@ -127,4 +143,70 @@ button {
 .panel input[type="checkbox"] {
   width: 20px;
   height: 20px;
+}
+
+.status {
+  font-size: 12px;
+  color: #d8f5ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(90, 200, 255, 0.16);
+  border: 1px solid rgba(126, 224, 255, 0.4);
+}
+
+.answer-box {
+  white-space: pre-wrap;
+  line-height: 1.4;
+  min-height: 80px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(3, 12, 28, 0.75);
+}
+
+.error-inline {
+  color: #ffdede;
+  border: 1px solid #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.source-item {
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(4, 20, 35, 0.65);
+}
+
+.source-chip {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.source-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.source-snippet {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #c9d6ef;
 }

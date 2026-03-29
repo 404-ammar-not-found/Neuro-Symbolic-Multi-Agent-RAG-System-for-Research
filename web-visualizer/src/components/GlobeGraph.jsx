@@ -3,11 +3,11 @@ import ForceGraph3D from "react-force-graph-3d";
 import * as THREE from "three";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-function makeGlowSprite(color = "#7ee0ff") {
-  const size = 64;
+function makeGlowSprite(color = "#7ee0ff", size = 14) {
+  const canvasSize = 64;
   const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = canvasSize;
+  canvas.height = canvasSize;
   const ctx = canvas.getContext("2d");
 
   const toRGBA = (c, alpha) => {
@@ -19,18 +19,18 @@ function makeGlowSprite(color = "#7ee0ff") {
   };
 
   const gradient = ctx.createRadialGradient(
-    size / 2,
-    size / 2,
+    canvasSize / 2,
+    canvasSize / 2,
     0,
-    size / 2,
-    size / 2,
-    size / 2
+    canvasSize / 2,
+    canvasSize / 2,
+    canvasSize / 2
   );
   gradient.addColorStop(0, toRGBA(color, 1));
   gradient.addColorStop(0.4, toRGBA(color, 0.67));
   gradient.addColorStop(1, toRGBA(color, 0));
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
 
   const texture = new THREE.CanvasTexture(canvas);
   const material = new THREE.SpriteMaterial({
@@ -41,15 +41,24 @@ function makeGlowSprite(color = "#7ee0ff") {
     depthWrite: false,
   });
   const sprite = new THREE.Sprite(material);
-  sprite.scale.set(14, 14, 1);
+  sprite.scale.set(size, size, 1);
   return sprite;
+}
+
+function endpointId(endpoint) {
+  if (endpoint && typeof endpoint === "object") {
+    return endpoint.id;
+  }
+  return endpoint;
 }
 
 function useNeighbors(data) {
   return useMemo(() => {
     const map = new Map();
     data.links.forEach((link) => {
-      const { source, target } = link;
+      const source = endpointId(link.source);
+      const target = endpointId(link.target);
+      if (!source || !target) return;
       if (!map.has(source)) map.set(source, new Set());
       if (!map.has(target)) map.set(target, new Set());
       map.get(source).add(target);
@@ -59,17 +68,32 @@ function useNeighbors(data) {
   }, [data]);
 }
 
-function GlobeGraph({ data, highlightNode, showEdges, onNodeHover, onNodeClick }) {
+function GlobeGraph({
+  data,
+  highlightNode,
+  activeNodeIds = [],
+  showEdges,
+  onNodeHover,
+  onNodeClick,
+}) {
   const fgRef = useRef();
   const [composer, setComposer] = useState(null);
   const neighborMap = useNeighbors(data);
+  const activeSet = useMemo(() => new Set(activeNodeIds || []), [activeNodeIds]);
 
   const nodeThreeObject = (node) => {
     const color = node.color || node.groupColor || "#7ee0ff";
-    return makeGlowSprite(color);
+    if (node.id === highlightNode) {
+      return makeGlowSprite("#ffffff", 24);
+    }
+    if (activeSet.has(node.id)) {
+      return makeGlowSprite("#ffe98a", 20);
+    }
+    return makeGlowSprite(color, 14);
   };
 
   const nodeColor = (node) => {
+    if (activeSet.has(node.id)) return "#ffe98a";
     if (!highlightNode) return node.color || node.groupColor || "#7ee0ff";
     if (node.id === highlightNode) return "#ffffff";
     const neighbors = neighborMap.get(highlightNode) || new Set();
@@ -78,12 +102,19 @@ function GlobeGraph({ data, highlightNode, showEdges, onNodeHover, onNodeClick }
 
   const linkColor = (link) => {
     const type = link.type || "sequence";
-    const srcId = link.source.id || link.source;
-    const tgtId = link.target.id || link.target;
+    const srcId = endpointId(link.source);
+    const tgtId = endpointId(link.target);
     const baseColor =
       type === "similarity"
         ? "rgba(255, 180, 120, 0.35)"
         : "rgba(126, 224, 255, 0.2)";
+
+    const usedEdge = activeSet.has(srcId) || activeSet.has(tgtId);
+    if (usedEdge) {
+      return type === "similarity"
+        ? "rgba(255, 238, 130, 0.9)"
+        : "rgba(255, 244, 173, 0.95)";
+    }
 
     if (!highlightNode) return baseColor;
     const neighbors = neighborMap.get(highlightNode) || new Set();
@@ -100,6 +131,11 @@ function GlobeGraph({ data, highlightNode, showEdges, onNodeHover, onNodeClick }
   const linkVisibility = () => showEdges;
 
   const linkWidth = (link) => {
+    const srcId = endpointId(link.source);
+    const tgtId = endpointId(link.target);
+    if (activeSet.has(srcId) || activeSet.has(tgtId)) {
+      return 3.6;
+    }
     const sim = link.similarity || 0.5;
     if (link.type === "similarity") {
       return 0.5 + sim * 2;
@@ -139,8 +175,8 @@ function GlobeGraph({ data, highlightNode, showEdges, onNodeHover, onNodeClick }
       nodeColor={nodeColor}
       linkColor={linkColor}
       linkOpacity={0.5}
-      linkDirectionalParticles={2}
-      linkDirectionalParticleWidth={0.5}
+      linkDirectionalParticles={3}
+      linkDirectionalParticleWidth={1.1}
       linkWidth={linkWidth}
       linkVisibility={linkVisibility}
       enableNodeDrag={false}

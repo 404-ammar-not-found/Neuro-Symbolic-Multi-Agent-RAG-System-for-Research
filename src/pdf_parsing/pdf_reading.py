@@ -28,31 +28,13 @@ class PdfReader:
             Extracted text content. Returns an empty string on failure.
         """
 
-        text = ""
         try:
-            with fitz.open(pdf_path) as document:
-                total_pages = len(document)
-                last_log = -1
-                for index, page in enumerate(document):
-                    if max_pages is not None and index >= max_pages:
-                        print(
-                            f"  reached page limit ({max_pages}); stopping early for {pdf_path}"
-                        )
-                        break
-
-                    text += page.get_text("text")
-
-                    if log_every > 0:
-                        current_page = index + 1
-                        if current_page % log_every == 0 and current_page != last_log:
-                            print(
-                                f"  processed page {current_page}/{total_pages} of {Path(pdf_path).name}"
-                            )
-                            last_log = current_page
-
+            return "".join(
+                self._iter_pages(pdf_path, max_pages=max_pages, log_every=log_every)
+            )
         except Exception as exc:  # pragma: no cover - thin wrapper over library
             print(f"Error reading PDF {pdf_path}: {exc}")
-        return text
+            return ""
 
     def iter_text(
         self,
@@ -63,26 +45,9 @@ class PdfReader:
         """Yield page-level text with optional cap and progress logs."""
 
         try:
-            with fitz.open(pdf_path) as document:
-                total_pages = len(document)
-                last_log = -1
-                for index, page in enumerate(document):
-                    if max_pages is not None and index >= max_pages:
-                        print(
-                            f"  reached page limit ({max_pages}); stopping early for {pdf_path}"
-                        )
-                        break
-
-                    yield page.get_text("text")
-
-                    if log_every > 0:
-                        current_page = index + 1
-                        if current_page % log_every == 0 and current_page != last_log:
-                            print(
-                                f"  processed page {current_page}/{total_pages} of {Path(pdf_path).name}"
-                            )
-                            last_log = current_page
-
+            yield from self._iter_pages(
+                pdf_path, max_pages=max_pages, log_every=log_every
+            )
         except Exception as exc:  # pragma: no cover - thin wrapper over library
             print(f"Error reading PDF {pdf_path}: {exc}")
 
@@ -107,3 +72,31 @@ class PdfReader:
 
         pdf_files: Iterable[Path] = target_dir.glob("*.pdf")
         return [self.extract_text(pdf_file) for pdf_file in pdf_files]
+
+    def _iter_pages(
+        self,
+        pdf_path: Path | str,
+        max_pages: int | None = None,
+        log_every: int = 10,
+    ):
+        """Yield page texts while logging progress."""
+
+        with fitz.open(pdf_path) as document:
+            total_pages = len(document)
+            last_log = -1
+            for index, page in enumerate(document):
+                if max_pages is not None and index >= max_pages:
+                    print(
+                        f"  reached page limit ({max_pages}); stopping early for {pdf_path}"
+                    )
+                    break
+
+                yield page.get_text("text")
+
+                if log_every > 0:
+                    current_page = index + 1
+                    if current_page % log_every == 0 and current_page != last_log:
+                        print(
+                            f"  processed page {current_page}/{total_pages} of {Path(pdf_path).name}"
+                        )
+                        last_log = current_page

@@ -40,6 +40,17 @@ class ChromaVectorStore:
             metadatas=list(metadatas) if metadatas is not None else None,
         )
 
+    def file_exists(self, file_hash: str) -> bool:
+        """Check whether a file (by hash) is already stored."""
+
+        existing = self.collection.get(
+            where={"file_hash": file_hash},
+            limit=1,
+            include=["metadatas"],
+        )
+        ids = existing.get("ids", []) or []
+        return len(ids) > 0
+
     def query(self, query_embedding: Sequence[float], top_k: int = 5) -> list[dict[str, Any]]:
         """Return the top matching documents for a query embedding."""
 
@@ -65,3 +76,11 @@ class ChromaVectorStore:
                 }
             )
         return matches
+
+    def count(self) -> int:
+        """Return the total number of items in the collection."""
+
+        try:
+            return int(self.collection.count())
+        except Exception:
+            return 0

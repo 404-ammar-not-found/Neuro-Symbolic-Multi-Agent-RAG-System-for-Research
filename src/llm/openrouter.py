@@ -9,14 +9,21 @@ from openrouter import OpenRouter
 DEFAULT_OPENROUTER_MODEL = "z-ai/glm-4.5-air:free"
 
 
+def _require_api_key() -> str:
+    """Fetch the OpenRouter API key or raise a clear error."""
+
+    load_dotenv()
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        raise ValueError("OPENROUTER_API_KEY is not set.")
+    return api_key
+
+
 class OpenRouterClient:
     """Lightweight OpenRouter chat wrapper."""
 
     def __init__(self, model: str = DEFAULT_OPENROUTER_MODEL) -> None:
-        load_dotenv()
-        self.api_key = os.getenv("OPENROUTER_API_KEY")
-        if not self.api_key:
-            raise ValueError("OPENROUTER_API_KEY is not set.")
+        self.api_key = _require_api_key()
         self.model = model
 
     def generate(self, prompt: str, model: str | None = None, **kwargs: Any) -> Any:

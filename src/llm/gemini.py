@@ -8,13 +8,22 @@ from google import genai
 
 DEFAULT_GENERATION_MODEL = "gemini-3-flash-preview"
 DEFAULT_EMBEDDING_MODEL = "models/gemini-embedding-001"
-def _build_client() -> genai.Client:
-    """Create a Gemini client using the API key from the environment."""
+
+
+def _require_api_key() -> str:
+    """Fetch the Gemini API key or raise a clear error."""
 
     load_dotenv()
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY is not set.")
+    return api_key
+
+
+def _build_client() -> genai.Client:
+    """Create a Gemini client using the API key from the environment."""
+
+    api_key = _require_api_key()
     return genai.Client(api_key=api_key)
 
 

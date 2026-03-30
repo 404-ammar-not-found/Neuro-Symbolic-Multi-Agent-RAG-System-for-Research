@@ -1,4 +1,4 @@
-# Neuro-Symbolic Multi-Agent RAG System
+# RAG System for Research
 
 ## Overview
 Streaming PDF ingestion into ChromaDB with Gemini embeddings and an OpenRouter/Gemini Q&A interface, plus a React 3D globe visualizer for graph data.
